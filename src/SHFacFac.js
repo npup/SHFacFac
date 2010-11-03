@@ -12,10 +12,11 @@ function SHFacFac(global, ns) {
     try {Session = global.sessionStorage;} catch(err) {}
     
     // Return function that can create a Local Storage Handler
-    return (function SHFac(global, ns) {ter
+    return (function SHFac(global, ns) {
         // Create an object store (only used from the "create" function in the API)
         function Store(clazz, options) {
-            options = options || {}, self = this;
+            var self = this;
+            options = options || {};
             self.clazz = clazz;
             self.clazzName = clazz.prototype.constructor.name;
             var defaultOptions = {
@@ -206,7 +207,7 @@ function SHFacFac(global, ns) {
                 return v1 > v2;
             });
         };
-        
+
         // The API of a Storage Handler Factory
         var API = {
             /**
