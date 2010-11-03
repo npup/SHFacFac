@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+<title>untitled</title>
+<style type="text/css">
+#form {
+	width: 20em;
+	padding: 10px;
+	margin: 10px;
+	text-align: right;
+	border: 1px solid #987;
+	border-radius: 5px;
+	background-color: #dd9;
+}
+#form label {
+	display: block;
+	width: 55%;
+	margin: 0 auto 0 auto;
+}
+.op.save, .op.cancel {
+	display: none;
+}
+</style>
+</head>
+
+<body>
+	
+<div id="status-msg"></div>
+
+<form action="#" id="form">
+	<label>Name <input type="text" name="name" placeholder="Ola" /></label>
+	<label>Age <input type="text" name="age" placeholder="8" /></label>
+	<input type="submit" value="Register" />
+</form>
+<button onclick="Apor.clear();roster();">Clear</button>
+<br />
+Sort by<br />
+<button onclick="orderBy='age'; roster();">Age</button>
+<button onclick="orderBy='name'; roster();">Name</button>
+<button onclick="orderBy='id'; roster();">ID</button>
+<button onclick="orderBy='created'; roster();">Created</button>
+<button onclick="orderBy='saved'; roster();">Saved</button>
+<div id="submit-msg"></div>
+
+
+<table>
+	<thead id="apor-header">
+		<tr>
+			<th>Name</th>
+			<th>Age</th>
+			<th>Id</th>
+			<th>Created</th>
+			<th>Saved</th>
+			<th>Operations</th>
+		</tr>
+	</thead>
+	<tbody id="apor">	
+	</tbody>
+</table>
+
+<script type="text/javascript" src="../src/SHFacFac.js"></script>
+<script type="text/javascript">
+	var form = document.getElementById('form');
+	var orderBy = 'age';
+	var dir = 'asc';
+	var AnimalStore = SHFacFac(this, 'Animals');
+	var Apor = AnimalStore.createStore(Apa);
+	var Grisar = AnimalStore.createStore(Gris, {session: true});
+	function Gris(weight) {
+		this.weight = weight;
+	}
+
+	function Apa(name, age) {
+		this.name = name;
+		this.age = age;
+	}
+	Apa.prototype.toString = function () {
+		return 'Apan %name%, ålder %age%'.replace('%name%', this.name).replace('%age%', this.age);
+	};
+
+	// Capture form submit
+	form.addEventListener('submit', function (e) {
+		e.preventDefault();
+		var name = form.elements.name.value, age = parseInt(form.elements.age.value), apa;
+		if (name && age) {
+			apa = new Apa(name, age);
+			Apor.store(apa);
+			roster();
+		}
+		else {
+			form.elements[name?'age':'name'].focus();
+		}
+	}, false);
+	
+	document.addEventListener('click', function (e) {
+		var src = e.target, id, obj;
+		if (!src.className.match(/\bop\b/)) return;
+		e.preventDefault();
+		id = src.parentNode.parentNode.id;
+		if (src.value==='Delete') {
+			obj = Apor.retrieve(id);
+			Apor.remove(obj);
+			roster();
+		}
+		else if (src.value==='Edit') {
+			setEditable(id, src);
+		}
+
+	}, false);
+	
+	function setEditable(id, editButton) {
+		var row = document.getElementById(id);
+		var cell = row.cells[0];
+		var inp = document.createElement('input');
+		inp.type = 'text';
+		inp.size = 6;
+		inp.value = cell.innerHTML;
+		cell.innerHTML = '';
+		cell.appendChild(inp);
+		cell = row.cells[1];
+		inp = document.createElement('input');
+		inp.type = 'text';
+		inp.size = 6;
+		inp.value = cell.innerHTML;
+		cell.innerHTML = '';
+		cell.appendChild(inp);
+		var saveButton = editButton.nextSibling;
+		var cancelButton = saveButton.nextSibling;
+		editButton.style.display = 'none';
+		saveButton.style.display = 'inline';
+		cancelButton.style.display = 'inline';
+		console.log('edit=>%s', editButton.value);
+		console.log('save=>%s', saveButton.value);
+		console.log('cancel=>%s', cancelButton.value);
+	}
+	function cancelEdit(id, cancelButton) {
+		
+	}
+	
+	function roster() {
+		var apor = document.getElementById('apor'), apa, row, html;
+		apor.innerHTML = '';
+		var a = Apor.list({orderBy:orderBy, dir:dir});
+		dir = dir==='asc'?'desc':'asc';
+		for (var idx=0, len=a.length; idx<len; ++idx) {
+			apa = a[idx];
+			var id = Apor.info(apa, 'id');
+			row = document.createElement('tr');
+			row.setAttribute('id', id);
+			row.appendChild(createCell(apa.name));
+			row.appendChild(createCell(apa.age));
+			row.appendChild(createCell(Apor.info(apa, 'id')));
+			row.appendChild(createCell(Apor.info(apa, 'created').toLocaleTimeString()));
+			row.appendChild(createCell(Apor.info(apa, 'saved').toLocaleTimeString()));
+			var cell = createCell('');
+			cell.appendChild(createButton('Delete', 'op delete', true));
+			cell.appendChild(createButton('Edit', 'op edit', true));
+			cell.appendChild(createButton('Save', 'op save'));
+			cell.appendChild(createButton('Cancel', 'op cancel'));
+			row.appendChild(cell);
+			apor.appendChild(row);
+		}
+		
+		function createCell(content) {
+			var cell = document.createElement('td');
+			cell.innerHTML = content;
+			return cell
+		}
+		function createButton(value, className, visible) {
+			var button = document.createElement('input');
+			button.type = 'button';
+			button.value = value;
+			button.className = className;
+			button.style.display = visible ? 'inline':'none';
+			return button;
+		}
+	}
+	roster();
+	
+</script>
+</body>
+</html>
