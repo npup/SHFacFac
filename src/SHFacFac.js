@@ -47,7 +47,7 @@ function SHFacFac(global, ns) {
             };
         }
         function getPrefix(moduleName, ns, options) {
-			return factoryPrefix+options.prefix+'-';
+            return factoryPrefix+options.prefix+'-';
         }
 
 
