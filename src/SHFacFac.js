@@ -62,7 +62,7 @@ function SHFacFac(global, ns) {
             if (!(obj instanceof this._internal.clazz)) throw new Error(barf('Could not store object of type '+(obj.constructor ? obj.constructor.name : typeof object)+' via this store (should be type '+this._internal.clazzName+')'));
             var ts = (+(new Date)).toString(16);
             var data = obj[this._internal.NS], id, created, saved;
-            if (typeof data === 'undefined') {
+            if (typeof data=='undefined') {
                 // Build the custom data and inject it
                 id = this._internal.prop.id+'-'+ts;
                 created = saved = ts;
@@ -77,7 +77,7 @@ function SHFacFac(global, ns) {
                 id = obj[this._internal.NS].id;
                 obj[this._internal.NS].saved = ts;
             }
-            if (typeof id==='undefined') throw new Error(barf('Could not obtain an id to save object.'));
+            if (typeof id=='undefined') throw new Error(barf('Could not obtain an id to save object.'));
     
             // Temporarily remove date objects during saving
             delete obj[this._internal.NS].createdDate;
@@ -115,7 +115,7 @@ function SHFacFac(global, ns) {
         */
         Store.prototype.remove = function (item) {
             var obj, id, check;
-            if (typeof item==='string') {
+            if (typeof item=='string') {
                 check = item.replace(this._internal.prop.id, '');
                 if (check.charAt(0)!=='-') {throw new Error(barf(this._internal.clazzName+'::Remove by id failed for invalid id ('+item+')'));}
                 obj = this.retrieve(item);
