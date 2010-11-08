@@ -3,10 +3,12 @@
 *   Returns a factory for Storage Handlers
 */
 function SHFacFac(global, ns) {
-    var moduleName = arguments.callee.name;
+    var moduleName = 'SHFacFac', __SUPPORTS__PROTO__, __SUPPORTS_FN_NAME__;
     // Fail early..
-    if (!global.localStorage) throw new Error(barf('Browser environment has no support for localStorage'));
-
+    if (!global.localStorage) throw Error(barf('Current browser environment has no support for localStorage'));
+    
+    __SUPPORTS__PROTO__ = (typeof {}.__proto__==='object');
+    __SUPPORTS_FN_NAME__ = !!(function Temp(){}).name;
     var Local = global.localStorage, Session;
     /* Try/catch to save from error when referencing sessionStorage using "file://" protocol in Firefox */
     try {Session = global.sessionStorage;} catch(err) {}
@@ -21,7 +23,7 @@ function SHFacFac(global, ns) {
             self._internal = {};
             options = options || {};
             self._internal.clazz  = clazz;
-            self._internal.clazzName = clazz.prototype.constructor.name;
+            self._internal.clazzName = __SUPPORTS_FN_NAME__ ? clazz.prototype.constructor.name : __get_fn_name__(clazz.prototype.constructor);
             var defaultOptions = {
                 prefix: self._internal.clazzName.toLowerCase()
                 , session: false
@@ -30,7 +32,7 @@ function SHFacFac(global, ns) {
                 if (!(p in options)) options[p] = defaultOptions[p];
             }
             self._internal.Storage = options.session ? Session : Local;
-            if (!self._internal.Storage) {throw new Error(barf(self.clazzName+'::Could not obtain reference to storage object ('+(options.session?'session':'local')+'). Using Firefox and "file://" protocol?'));}
+            if (!self._internal.Storage) {throw Error(barf(self.clazzName+'::Could not obtain reference to storage object ('+(options.session?'session':'local')+'). Using Firefox and "file://" protocol?'));}
             self._internal.NS = '_'+ns+'-data';
             self._internal.PREFIX = getPrefix(moduleName, ns, options);
             self._internal.prop = {
@@ -59,7 +61,7 @@ function SHFacFac(global, ns) {
         *   Returns: id the object was stored under
         */
         Store.prototype.store = function (obj) {
-            if (!(obj instanceof this._internal.clazz)) throw new Error(barf('Could not store object of type '+(obj.constructor ? obj.constructor.name : typeof object)+' via this store (should be type '+this._internal.clazzName+')'));
+            if (!(obj instanceof this._internal.clazz)) throw Error(barf('Could not store object of type '+(obj.constructor ? (__SUPPORTS_FN_NAME__ ? obj.constructor.name : __get_fn_name__(obj.constructor)) : typeof object)+' via this store (should be type '+this._internal.clazzName+')'));
             var ts = (+(new Date)).toString(16);
             var data = obj[this._internal.NS], id, created, saved;
             if (typeof data=='undefined') {
@@ -77,7 +79,7 @@ function SHFacFac(global, ns) {
                 id = obj[this._internal.NS].id;
                 obj[this._internal.NS].saved = ts;
             }
-            if (typeof id=='undefined') throw new Error(barf('Could not obtain an id to save object.'));
+            if (typeof id=='undefined') throw Error(barf('Could not obtain an id to save object.'));
     
             // Temporarily remove date objects during saving
             delete obj[this._internal.NS].createdDate;
@@ -103,10 +105,21 @@ function SHFacFac(global, ns) {
                 obj[this._internal.NS].createdDate = new Date(parseInt(obj[this._internal.NS].created, 16));
                 obj[this._internal.NS].savedDate = new Date(parseInt(obj[this._internal.NS].saved, 16));
                 // Restore prototype for instanceof jazz etc
-                obj.__proto__ = this._internal.clazz.prototype;
+                if (__SUPPORTS__PROTO__) {obj.__proto__ = this._internal.clazz.prototype;}
+                else {obj = __fake__proto__(this._internal.clazz, obj);}
             }
             return obj;
         };
+        // Is this evil magic? IE: Everything [evil] I do, I do it for yoooouuuu!
+        function __fake__proto__(sup, sub) {
+            var f = function() {for (var p in sub) {this[p] = sub[p];}};
+            sub.constructor = sup; f.prototype = sup.prototype;
+            return new f;
+        }
+        function __get_fn_name__(f) {
+            var m = /function \s*([^(\s]+)\s*\(/.exec(f.toString());
+            return m ? m[1] : null; // TODO: handle unnamed functions in some way
+        }
 
         /*
         * Remove an object from store (also removes the custom data)
@@ -117,7 +130,7 @@ function SHFacFac(global, ns) {
             var obj, id, check;
             if (typeof item=='string') {
                 check = item.replace(this._internal.prop.id, '');
-                if (check.charAt(0)!=='-') {throw new Error(barf(this._internal.clazzName+'::Remove by id failed for invalid id ('+item+')'));}
+                if (check.charAt(0)!=='-') {throw Error(barf(this._internal.clazzName+'::Remove by id failed for invalid id ('+item+')'));}
                 obj = this.retrieve(item);
             }
             else if (item instanceof this.clazz) {

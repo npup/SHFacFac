@@ -1,8 +1,8 @@
-(function () {
+(function (global) {
 
-function getFunctionName(f) {
-    var match = (''+f).match(/function \s*([\w\$]*)\s*\(/);
-    if (match) {return match[1];}
+function __get_fn_name__(f) {
+    var m = /function \s*([^(\s]+)\s*\(/.exec(f.toString());
+    return m ? m[1] : null; // TODO: handle unnamed functions in some way
 }
 // Model
 function Apa(name, age) {
@@ -14,12 +14,14 @@ Apa.prototype.toString = function () {
 };
 
 // setup of factory, removing items with this test-factory's prefix
-var factoryName = 'qUnit-test';
-var Factory = SHFacFac(window, factoryName);
-var factoryPrefix = Factory.getPrefix();
-for (var item in localStorage) {
+var factoryName = 'qUnit-test'
+    , Factory = SHFacFac(window, factoryName)
+    , factoryPrefix = Factory.getPrefix();
+var idx, item, len;
+for (idx=0, len=global.localStorage.length; idx<len; ++idx) {
+    item = global.localStorage.key(idx);
     if (item.indexOf(factoryPrefix)===0) {
-        localStorage.removeItem(item);
+        global.localStorage.removeItem(item);
     }
 }
 
@@ -101,7 +103,7 @@ test('Store functionality', function () {
     equal(Apor.count(), 1, 'After storing one object in an empty store, count is 1');
     var ola2 = Apor.retrieve(olaId);
     ok(ola2!==null && typeof ola2=='object', 'Retrieved a defined object');
-    equal(getFunctionName(ola2.constructor), getFunctionName(Apa), 'Retrieved object was of correct instance type');
+    equal(__get_fn_name__(ola2.constructor), __get_fn_name__(Apa), 'Retrieved object was of correct instance type');
 });
 
-})();
+})(window);
