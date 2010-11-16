@@ -104,6 +104,8 @@ test('Store functionality', function () {
     var ola2 = Apor.retrieve(olaId);
     ok(ola2!==null && typeof ola2=='object', 'Retrieved a defined object');
     equal(__get_fn_name__(ola2.constructor), __get_fn_name__(Apa), 'Retrieved object was of correct instance type');
+    Apor.store(new Apa('Ola2', 42));
+    equal(Apor.count(), 2, 'After storing two objects in the store, count is 2');
 });
 
 })(window);
